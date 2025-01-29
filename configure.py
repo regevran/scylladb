@@ -1842,7 +1842,9 @@ def prepare_advanced_optimizations(*, modes, build_modes, args):
         # It's valuable in general, but our training suite is not realistic and exhaustive
         # enough to be confident about value profiling. Let's also keep it disabled by
         # default, conservatively. (Currently it is enabled in Clang by default.)
-        conservative_opts = "" if args.experimental_pgo else "-mllvm -pgso=false -mllvm -enable-value-profiling=false"
+        conservative_opts = ""
+        if args.cxx == 'clang' and args.experimental_pgo:
+            "-mllvm -pgso=false -mllvm -enable-value-profiling=false"
 
         llvm_instr_types = []
         if args.pgo:
@@ -2143,7 +2145,8 @@ def get_extra_cxxflags(mode, mode_config, cxx, debuginfo):
     # 
     # It seems that we aren't losing much by disabling AssigmentTracking,
     # so for now we choose to disable it to get `coro_frame_ty` back.
-    cxxflags.append('-Xclang -fexperimental-assignment-tracking=disabled')
+    if cxx == 'clang':
+        cxxflags.append('-Xclang -fexperimental-assignment-tracking=disabled')
 
     return cxxflags
 

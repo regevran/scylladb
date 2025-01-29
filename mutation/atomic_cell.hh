@@ -199,9 +199,9 @@ protected:
         _view = v;
     }
     basic_atomic_cell_view() = default;
+public:
     explicit basic_atomic_cell_view(managed_bytes_basic_view<is_mutable> v) : _view(std::move(v)) { }
     friend class atomic_cell_or_collection;
-public:
     operator basic_atomic_cell_view<mutable_view::no>() const noexcept {
         return basic_atomic_cell_view<mutable_view::no>(_view);
     }

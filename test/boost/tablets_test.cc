@@ -1202,21 +1202,21 @@ SEASTAR_TEST_CASE(test_sharder) {
             auto shard_opt = sharder.next_shard_for_reads(tm.get_last_token(tablet_ids[0]));
             BOOST_REQUIRE(shard_opt);
             BOOST_REQUIRE_EQUAL(shard_opt->shard, 0);
-            BOOST_REQUIRE_EQUAL(shard_opt->token, tm.get_first_token(tablet_ids[1]));
+            BOOST_REQUIRE_EQUAL(shard_opt->shard_token, tm.get_first_token(tablet_ids[1]));
         }
 
         {
             auto shard_opt = sharder.next_shard_for_reads(tm.get_last_token(tablet_ids[1]));
             BOOST_REQUIRE(shard_opt);
             BOOST_REQUIRE_EQUAL(shard_opt->shard, 1);
-            BOOST_REQUIRE_EQUAL(shard_opt->token, tm.get_first_token(tablet_ids[2]));
+            BOOST_REQUIRE_EQUAL(shard_opt->shard_token, tm.get_first_token(tablet_ids[2]));
         }
 
         {
             auto shard_opt = sharder.next_shard_for_reads(tm.get_last_token(tablet_ids[2]));
             BOOST_REQUIRE(shard_opt);
             BOOST_REQUIRE_EQUAL(shard_opt->shard, 0);
-            BOOST_REQUIRE_EQUAL(shard_opt->token, tm.get_first_token(tablet_ids[3]));
+            BOOST_REQUIRE_EQUAL(shard_opt->shard_token, tm.get_first_token(tablet_ids[3]));
         }
 
         {

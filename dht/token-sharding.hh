@@ -26,7 +26,7 @@ token token_for_next_shard(const std::vector<uint64_t>& shard_start, unsigned sh
 
 struct shard_and_token {
     shard_id shard;
-    token token;
+    token shard_token;
 };
 
 /// Represents a set of shards that own a given token on a single host.

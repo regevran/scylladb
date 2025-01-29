@@ -188,7 +188,7 @@ ring_position_range_sharder::next(const schema& s) {
         _done = true;
         return ring_position_range_and_shard{std::move(_range), shard};
     }
-    auto shard_boundary_token = next_shard_and_token->token;
+    auto shard_boundary_token = next_shard_and_token->shard_token;
     auto shard_boundary = ring_position::starting_at(shard_boundary_token);
     if ((!_range.end() || shard_boundary.less_compare(s, _range.end()->value()))
             && !shard_boundary_token.is_maximum()) {
@@ -246,7 +246,7 @@ split_range_to_single_shard(const schema& s, const static_sharder& sharder, cons
             dht::token end_token = maximum_token();
             auto s_a_t = sharder.next_shard(start_token);
             if (s_a_t) {
-                end_token = s_a_t->token;
+                end_token = s_a_t->shard_token;
             }
             auto candidate = partition_range(std::move(start_boundary), interval_bound<ring_position>(ring_position::starting_at(end_token), false));
             auto intersection = pr.intersection(std::move(candidate), cmp);
@@ -488,7 +488,7 @@ std::optional<shard_id> is_single_shard(const dht::sharder& sharder, const schem
     if (auto s_a_t = sharder.next_shard_for_reads(token)) {
         dht::ring_position_comparator cmp(s);
         auto end = dht::ring_position_view::for_range_end(pr);
-        if (cmp(end, dht::ring_position_view::starting_at(s_a_t->token)) > 0) {
+        if (cmp(end, dht::ring_position_view::starting_at(s_a_t->shard_token)) > 0) {
             return std::nullopt;
         }
     }

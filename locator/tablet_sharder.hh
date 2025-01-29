@@ -143,10 +143,10 @@ public:
         ensure_tablet_map();
         auto token = t;
         while (auto s_a_t = next_shard_for_reads(token)) {
-            token = s_a_t->token;
+            token = s_a_t->shard_token;
             if (s_a_t->shard == shard) {
                 if (--spans == 0) {
-                    tablet_logger.trace("[{}] token_for_next_shard({}, {}, {}) = {}", _table, t, shard, spans, s_a_t->token);
+                    tablet_logger.trace("[{}] token_for_next_shard({}, {}, {}) = {}", _table, t, shard, spans, s_a_t->shard_token);
                     return token;
                 }
             }

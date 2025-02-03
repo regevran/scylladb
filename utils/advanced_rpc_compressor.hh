@@ -41,7 +41,7 @@ struct compression_algorithm {
     // Construct from an integer.
     // Used to deserialize the algorithm from the first byte of the frame.
     constexpr compression_algorithm(underlying x) {
-        if (x < 0 || x >= static_cast<underlying>(type::COUNT)) {
+        if (x >= static_cast<underlying>(type::COUNT)) {
             throw std::runtime_error(fmt::format("Invalid value {} for enum compression_algorithm", static_cast<int>(x)));
         }
         _value = static_cast<type>(x);

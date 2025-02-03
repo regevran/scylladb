@@ -245,13 +245,15 @@ static future<> read_object_storage_config(db::config& db_cfg) {
 
     std::unordered_map<sstring, s3::endpoint_config> cfg;
     YAML::Node doc = YAML::Load(data.c_str());
-    for (auto&& section : doc) {
-        auto sec_name = section.first.as<std::string>();
+
+    
+    for (auto&& docIt = doc.begin(); docIt != doc.end(); ++docIt) {
+        auto sec_name = docIt->first.as<std::string>();
         if (sec_name != "endpoints") {
             co_await coroutine::return_exception(std::runtime_error(fmt::format("While parsing object_storage config: section {} currently unsupported.", sec_name)));
         }
 
-        auto endpoints = section.second.as<std::vector<object_storage_endpoint_param>>();
+        auto endpoints = docIt->second.as<std::vector<object_storage_endpoint_param>>();
         for (auto&& ep : endpoints) {
             cfg[ep.endpoint] = std::move(ep.config);
         }

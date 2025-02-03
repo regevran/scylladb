@@ -84,8 +84,12 @@ reconcilable_result::printer reconcilable_result::pretty_printer(schema_ptr s) c
 
 future<foreign_ptr<lw_shared_ptr<reconcilable_result>>> reversed(foreign_ptr<lw_shared_ptr<reconcilable_result>> result)
 {
-    for (auto& partition : result->partitions())
+    //for (auto& partition : result->partitions())
+    for (auto partitionIt = result->partitions().begin();
+            partitionIt != result->partitions().end();
+            ++partitionIt)
     {
+        auto& partition = *partitionIt;
         auto& m = partition.mut();
         auto schema = local_schema_registry().get(m.schema_version());
         m = frozen_mutation(reverse(m.unfreeze(schema)));

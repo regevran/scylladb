@@ -138,7 +138,11 @@ tablet_map_to_mutation(const tablet_map& tablets, table_id id, const sstring& ke
     }
 
     tablet_id tid = tablets.first_tablet();
-    for (auto&& tablet : tablets.tablets()) {
+    //for (auto&& tablet : tablets.tablets()) {
+    for (auto&& tabletIt = tablets.tablets().begin(); 
+                tabletIt != tablets.tablets().end();
+                ++tabletIt ) {
+        auto&& tablet = *tabletIt;
         auto last_token = tablets.get_last_token(tid);
         auto ck = clustering_key::from_single_value(*s, data_value(dht::token::to_int64(last_token)).serialize_nonnull());
         m.set_clustered_cell(ck, "replicas", make_list_value(replica_set_type, replicas_to_data_value(tablet.replicas)), ts);
@@ -362,7 +366,11 @@ future<> save_tablet_metadata(replica::database& db, const tablet_metadata& tm, 
     tablet_logger.trace("Saving tablet metadata: {}", tm);
     std::vector<mutation> muts;
     muts.reserve(tm.all_tables().size());
-    for (auto&& [id, tablets] : tm.all_tables()) {
+    //for (auto&& [id, tablets] : tm.all_tables()) {
+    for (auto tableIt = tm.all_tables().begin();
+            tableIt != tm.all_tables().end();
+            ++tableIt ) {
+        auto&& [id, tablets] = *tableIt;
         // FIXME: Should we ignore missing tables? Currently doesn't matter because this is only used in tests.
         auto s = db.find_schema(id);
         muts.emplace_back(
@@ -699,7 +707,11 @@ do_update_tablet_metadata_partition(cql3::query_processor& qp, tablet_metadata& 
 
 static future<>
 do_update_tablet_metadata_rows(replica::database& db, cql3::query_processor& qp, tablet_map& tmap, const tablet_metadata_change_hint::table_hint& hint) {
-    for (const auto token : hint.tokens) {
+    //for (const auto token : hint.tokens) {
+    for (auto tokenIt = hint.tokens.begin();
+            tokenIt != hint.tokens.end();
+            ++tokenIt) {
+        const auto token = *tokenIt;
         auto res = co_await qp.execute_internal(
                 "select * from system.tablets where table_id = ? and last_token = ?",
                 db::consistency_level::ONE,
@@ -875,8 +887,12 @@ stop_iteration tablet_sstable_set::for_each_sstable_set_until(const dht::partiti
 }
 
 future<stop_iteration> tablet_sstable_set::for_each_sstable_set_gently_until(const dht::partition_range& pr, std::function<future<stop_iteration>(lw_shared_ptr<const sstables::sstable_set>)> func) const {
-    for (const auto& i : subrange(pr)) {
-        const auto& set = find_sstable_set(i);
+    //for (const auto& i : subrange(pr)) {
+    const auto& subrange_partition = subrange(pr);
+    for (auto partitionIt = subrange_partition.begin();
+            partitionIt != subrange_partition.end();
+            ++partitionIt ) {
+        const auto& set = find_sstable_set(*partitionIt);
         if (co_await func(set) == stop_iteration::yes) {
             co_return stop_iteration::yes;
         }
@@ -982,7 +998,7 @@ public:
         // Return all sstables selected on the requested position from the first matching sstable set.
         // This assumes that the underlying sstable sets are disjoint in their token ranges so
         // only one of them contain any given token.
-        auto sstables = std::move(res.sstables);
+        auto sstables = res.sstables;
         // Return the lowest next position, such that this function will be called again to select the
         // lowest next position from the selector which previously returned it.
         // Until the current selector is exhausted. In that case,

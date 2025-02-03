@@ -1620,6 +1620,7 @@ def get_warning_options(cxx):
         '-Wno-missing-field-initializers',
         '-Wno-deprecated-copy',
         '-Wno-enum-constexpr-conversion',
+        '-Wno-narrowing'
     ]
 
     warnings = [w

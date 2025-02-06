@@ -3524,19 +3524,9 @@ table::query(schema_ptr query_schema,
     });
 
     const auto short_read_allowed = query::short_read(cmd.slice.options.contains<query::partition_slice::option::allow_short_read>());
-    /*
     auto accounter = co_await (opts.request == query::result_request::only_digest
              ? memory_limiter.new_digest_read(permit.max_result_size(), short_read_allowed)
              : memory_limiter.new_data_read(permit.max_result_size(), short_read_allowed));
-    */
-
-    future<query::result_memory_accounter> accounter;
-
-    if (opts.request == query::result_request::only_digest) {
-        auto accounter = memory_limiter.new_digest_read(permit.max_result_size(), short_read_allowed)
-    } else {
-        accounter = memory_limiter.new_data_read(permit.max_result_size(), short_read_allowed);
-    }
 
     query_state qs(query_schema, cmd, opts, partition_ranges, std::move(accounter));
 

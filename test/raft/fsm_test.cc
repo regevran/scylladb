@@ -11,6 +11,9 @@
 #include "raft/tracker.hh"
 #include "test/raft/helpers.hh"
 
+#undef SEASTAR_TESTING_MAIN
+#include <seastar/testing/test_case.hh>
+
 using namespace raft;
 
 namespace raft {
@@ -2109,7 +2112,7 @@ BOOST_AUTO_TEST_CASE(test_candidate_outside_configuration) {
     BOOST_CHECK(B.is_leader());
 }
 
-BOOST_AUTO_TEST_CASE(test_read_barrier) {
+SEASTAR_TEST_CASE(test_read_barrier) {
     raft::server_id A_id = id(), B_id = id(), C_id = id(), D_id = id(), E_id = id();
     raft::log log(raft::snapshot_descriptor{.idx = raft::index_t{0},
         .config = config_from_ids({A_id, B_id, C_id, D_id})});
@@ -2235,6 +2238,8 @@ BOOST_AUTO_TEST_CASE(test_read_barrier) {
     // check that it completes immediately
     output = AA.get_output();
     BOOST_CHECK(output.max_read_id_with_quorum);
+
+    return make_ready_future();
 }
 
 BOOST_AUTO_TEST_CASE(test_append_entry_inside_snapshot) {

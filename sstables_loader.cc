@@ -200,8 +200,14 @@ private:
     }
 
     future<> stream_fully_contained_sstables(const dht::partition_range& pr, std::vector<sstables::shared_sstable> sstables, shared_ptr<stream_progress> progress) {
-        // FIXME: fully contained sstables can be optimized.
-        return stream_sstables(pr, std::move(sstables), std::move(progress));
+        for (auto& sst : sstables) {
+            llog.debug("stream_fully_contained_sstables: streaming fully contained sstable={}", sst->get_filename());
+            for (auto& component : sst->all_components()) {
+                llog.debug("stream_fully_contained_sstables: component={}", component);
+            }
+        }
+
+        return stream_sstables(pr, std::move(sstables), progress);
     }
 
     bool tablet_in_scope(locator::tablet_id) const;
@@ -339,6 +345,7 @@ public:
 future<> tablet_sstable_streamer::stream(shared_ptr<stream_progress> progress) {
     if (progress) {
         progress->start(_tablet_map.tablet_count());
+        llog.debug("tracking progress of {} tablets", _tablet_map.tablet_count());
     }
 
     // sstables are sorted by first key in reverse order.
@@ -379,12 +386,19 @@ future<> tablet_sstable_streamer::stream(shared_ptr<stream_progress> progress) {
             co_await coroutine::maybe_yield();
         }
 
-        auto per_tablet_progress = make_shared<per_tablet_stream_progress>(
-            progress,
-            sstables_fully_contained.size() + sstables_partially_contained.size());
+        auto fully_contained_size = sstables_fully_contained.size();
+        auto partially_contained_size = sstables_partially_contained.size();
+        auto total_num_of_sstables = fully_contained_size + partially_contained_size;
+
+        auto per_tablet_progress = make_shared<per_tablet_stream_progress>(progress, total_num_of_sstables);
         auto tablet_pr = dht::to_partition_range(tablet_range);
-        co_await stream_sstables(tablet_pr, std::move(sstables_partially_contained), per_tablet_progress);
-        co_await stream_fully_contained_sstables(tablet_pr, std::move(sstables_fully_contained), per_tablet_progress);
+
+        if (total_num_of_sstables) {
+            llog.debug("tablet_sstable_streamer::stream streaming total of {} sstables; fully contained: {}, partially contined: {}", 
+                    total_num_of_sstables, fully_contained_size, partially_contained_size);
+            co_await stream_sstables(tablet_pr, std::move(sstables_partially_contained), per_tablet_progress);
+            co_await stream_fully_contained_sstables(tablet_pr, std::move(sstables_fully_contained), per_tablet_progress);    
+        }
     }
 }
 
@@ -566,8 +580,8 @@ future<> sstables_loader::load_new_sstables(sstring ks_name, sstring cf_name,
         throw std::runtime_error("Skipping reshape is not possible when doing load-and-stream");
     }
 
-    llog.info("Loading new SSTables for keyspace={}, table={}, load_and_stream={}, primary_replica_only={}, skip_cleanup={}",
-            ks_name, cf_name, load_and_stream_desc, primary_replica_only, skip_cleanup);
+    llog.info("Loading new SSTables for keyspace={}, table={}, load_and_stream={}, primary_replica_only={}, skip_cleanup={}, scope={}",
+            ks_name, cf_name, load_and_stream_desc, primary_replica_only, skip_cleanup, scope);
     try {
         if (load_and_stream) {
             ::table_id table_id;
@@ -687,10 +701,7 @@ public:
                   SCYLLA_ASSERT(p);
                   return *p;
                 });
-            co_return tasks::task_manager::task::progress {
-                .completed = p.completed,
-                .total = p.total,
-            };
+            co_return tasks::task_manager::task::progress{p.total(), p.completed()};
         });
     }
 };
@@ -776,7 +787,7 @@ future<tasks::task_id> sstables_loader::download_new_sstables(sstring ks_name, s
     if (!_storage_manager.is_known_endpoint(endpoint)) {
         throw std::invalid_argument(format("endpoint {} not found", endpoint));
     }
-    llog.info("Restore sstables from {}({}) to {}", endpoint, prefix, ks_name);
+    llog.info("Restore sstables from {}({}) to {}, scope={}", endpoint, prefix, ks_name, scope);
 
     auto task = co_await _task_manager_module->make_and_start_task<download_task_impl>({}, container(), std::move(endpoint), std::move(bucket), std::move(ks_name), std::move(cf_name), std::move(prefix), std::move(sstables), scope);
     co_return task->id();

@@ -349,13 +349,18 @@ async def do_test_simple_backup_and_restore(manager: ManagerClient, s3_server, t
     objects = set(o.key for o in get_s3_resource(s3_server).Bucket(s3_server.bucket_name).objects.filter(Prefix=prefix))
     assert len(objects) > 0
 
-    print('Try to restore')
+    print(f'Try to restore: to scylla at:{server.ip_addr}, ks={ks}, cf={cf}, s3_server_adress:{s3_server.address}, s3_server.bucket_name={s3_server.bucket_name}, prefix={prefix}')
+    for toc in toc_names:
+        print(f'  toc: {toc}')
     tid = await manager.api.restore(server.ip_addr, ks, cf, s3_server.address, s3_server.bucket_name, prefix, toc_names)
 
     if do_abort:
         await manager.api.abort_task(server.ip_addr, tid)
 
     status = await manager.api.wait_task(server.ip_addr, tid)
+
+    print(f'Restore status: {status}')  
+
     if not do_abort:
         assert status is not None
         assert status['state'] == 'done'
@@ -399,6 +404,10 @@ async def test_abort_simple_backup_and_restore(manager: ManagerClient, s3_server
     '''check that restoring from backed up snapshot for a keyspace:table works'''
     await do_test_simple_backup_and_restore(manager, s3_server, tmp_path, False, True)
 
+@pytest.mark.asyncio
+async def test_file_based_restore(manager: ManagerClient, s3_server, tmp_path):
+    '''check that restoring fully contained sstables works'''
+    await do_test_simple_backup_and_restore(manager, s3_server, tmp_path, False, False)
 
 
 async def do_abort_restore(manager: ManagerClient, s3_server):

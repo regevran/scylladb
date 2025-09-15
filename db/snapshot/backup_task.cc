@@ -69,7 +69,7 @@ future<tasks::task_manager::task::progress> backup_task_impl::get_progress() con
             return _progress_per_shard[this_shard_id()];
         }, s3::upload_progress(), std::plus<>());
     co_return tasks::task_manager::task::progress{
-        .completed = p.uploaded,
+        .completed = p.transffered,
         .total = p.total,
     };
 }

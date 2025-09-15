@@ -12,9 +12,14 @@
 namespace s3 {
 class client;
 
-struct upload_progress {
+struct transferred_progress {
     size_t total = 0;
-    size_t uploaded = 0;
-    upload_progress operator+(const upload_progress& other) const { return {total + other.total, uploaded + other.uploaded}; }
+    size_t transffered = 0;
+    transferred_progress operator+(const transferred_progress& other) const { 
+        return {total + other.total, transffered + other.transffered}; 
+    }
 };
+
+using upload_progress = transferred_progress;
+using download_progress = transferred_progress;
 }

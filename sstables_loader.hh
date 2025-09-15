@@ -30,26 +30,31 @@ class view_building_worker;
 }
 }
 
-struct stream_progress {
-    float total = 0.;
-    float completed = 0.;
-
+class stream_progress {
+    float _total = 0.;
+    float _completed = 0.;
+public:
+    stream_progress() = default;
+    stream_progress(float t, float c) : _total(t), _completed(c) {}
     virtual ~stream_progress() = default;
     stream_progress& operator+=(const stream_progress& p) {
-        total += p.total;
-        completed += p.completed;
+        _total += p._total;
+        _completed += p._completed;
         return *this;
     }
     void start(float amount) {
         assert(amount >= 0);
-        total = amount;
+        _total = amount;
     }
     virtual void advance(float amount) {
         // we should not move backward
         assert(amount >= 0);
-        completed += amount;
-        assert(completed <= total);
+        _completed += amount;
+        assert(_completed <= _total);
     }
+
+    float total() const { return _total; }
+    float completed() const { return _completed; }
 };
 
 // The handler of the 'storage_service/load_new_ss_tables' endpoint which, in

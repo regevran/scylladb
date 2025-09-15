@@ -189,6 +189,11 @@ public:
                          upload_progress& up,
                          seastar::abort_source* = nullptr);
 
+    future<> download_file(sstring object_name,
+                         std::filesystem::path target_path,
+                         upload_progress& up,
+                         seastar::abort_source* = nullptr);
+
     future<> update_config(endpoint_config_ptr);
 
     struct handle {

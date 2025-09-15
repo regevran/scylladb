@@ -125,3 +125,27 @@ public:
 
     class download_task_impl;
 };
+
+
+template <> struct fmt::formatter<sstables_loader::stream_scope> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+    auto format(const sstables_loader::stream_scope ss, fmt::format_context& ctx) const {
+        std::string_view scope_name;
+        switch (ss) {
+            case sstables_loader::stream_scope::all :
+                scope_name = "all";
+                break;
+            case sstables_loader::stream_scope::dc:
+                scope_name = "dc";
+                break;
+            case sstables_loader::stream_scope::rack:
+                scope_name = "rack";
+                break;
+            case sstables_loader::stream_scope::node:
+                scope_name = "node";
+                break;
+        }
+        return fmt::format_to(ctx.out(), "sope:{}", scope_name);
+    }
+};
+

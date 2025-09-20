@@ -1613,6 +1613,18 @@ future<> client::upload_file(std::filesystem::path path,
     co_await do_upload.upload();
 }
 
+/*
+future<> download_file(sstring object_name,
+                     std::filesystem::path target_path,
+                     upload_progress& up,
+                     seastar::abort_source* = nullptr) {
+    do_download_file do_download{
+        
+        std::move(object_name), std::move(target_path), up};
+    co_await do_download.download();
+}
+*/
+
 class client::readable_file : public file_impl {
     shared_ptr<client> _client;
     sstring _object_name;

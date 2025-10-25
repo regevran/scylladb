@@ -879,8 +879,8 @@ public:
     // split interval in two around a split_point. split_point has to be inside the interval
     // split_point will belong to first interval
     // Comparator must define a total ordering on T.
-    std::pair<interval<T>, interval<T>> split(const T& split_point, IntervalComparatorFor<T> auto&& cmp) const {
-        SCYLLA_ASSERT(contains(split_point, std::forward<decltype(cmp)>(cmp)));
+    std::pair<interval<T>, interval<T>> split(const T& split_point, IntervalComparatorFor<T> auto const&& cmp) const {
+        SCYLLA_CONTRACT_ASSERT(contains(split_point, std::forward<decltype(cmp)>(cmp)));
         interval left(start(), bound(split_point));
         interval right(bound(split_point, false), end());
         return std::make_pair(std::move(left), std::move(right));

@@ -43,7 +43,7 @@ bool query_ranges_to_vnodes_generator::empty() const {
  * so we need to restrict each scan to the specific range we want, or else we'd get duplicate results.
  */
 void query_ranges_to_vnodes_generator::process_one_range(size_t n, dht::partition_range_vector& ranges) {
-    dht::ring_position_comparator cmp(*_s);
+    const dht::ring_position_comparator cmp(*_s);
     dht::partition_range& cr = *_i;
 
     auto get_remainder = [this, &cr] {
@@ -96,7 +96,7 @@ void query_ranges_to_vnodes_generator::process_one_range(size_t n, dht::partitio
         }
 
         std::pair<dht::partition_range, dht::partition_range> splits =
-                cr.split(split_point, cmp);
+                cr.split(split_point, std::move(cmp));
 
         add_range(std::move(splits.first));
         cr = std::move(splits.second);

@@ -1611,7 +1611,9 @@ private:
 
     static bool erase_from_slot(node_head_ptr* np, key_t key, unsigned depth, erase_mode erm) noexcept {
         node_head* n = np->raw();
-        SCYLLA_ASSERT(n->check_prefix(key, depth));
+
+        bool checked_prefix = n->check_prefix(key, depth);
+        SCYLLA_CONTRACT_ASSERT(checked_prefix);
 
         erase_result er = n->erase(key, depth, erm);
         if (erm == erase_mode::cleanup) {

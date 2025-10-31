@@ -1258,7 +1258,14 @@ future<> row_cache::invalidate(external_updater eu, dht::partition_range_vector&
                                     break;
                                 }
                             }
-                            SCYLLA_ASSERT(it != _partitions.end());
+                            SCYLLA_CONTRACT_ASSERT(it != _partitions.end());
+                            /* without fixing the iterator comparisons, the following compilation error occurs:
+                            // error: invalid operands to binary expression ('const iterator' and 'const_iterator' (aka 'iterator_base<true>')) 
+                            // to mitigate, we can either fix the comparisons (as we did) or use the following code instead:
+                            if (it != _partitions.end()) {
+                                SCYLLA_CONTRACT_ASSERT(false);
+                            }
+                            */
                             _tracker.clear_continuity(*it);
                             return stop_iteration(it == end);
                         });

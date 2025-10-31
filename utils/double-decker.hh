@@ -90,6 +90,9 @@ public:
         }
 
         bool operator==(const iterator_base& o) const noexcept = default;
+        bool operator==(const iterator_base<not Const>& o) const noexcept {
+            return _idx == o._idx and _bucket == o._bucket;
+        }
     };
 
     using const_iterator = iterator_base<true>;

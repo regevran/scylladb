@@ -533,6 +533,9 @@ public:
         using data_ptr = std::conditional_t<Const, const data*, data*>;
         using node_ptr = std::conditional_t<Const, const node*, node*>;
 
+        // for operator== with non-const/const iterator
+        friend class iterator_base<not Const>;
+
         /*
          * When the iterator gets to the end the _data is
          * replaced with the _tree obtained from the right
@@ -640,6 +643,7 @@ public:
         }
 
         bool operator==(const iterator_base& o) const noexcept { return is_end() ? o.is_end() : _data == o._data; }
+        bool operator==(const iterator_base<not Const>& o) const noexcept { return is_end() ? o.is_end() : _data == o._data; }
     };
 
     using iterator_base_const = iterator_base<true>;
